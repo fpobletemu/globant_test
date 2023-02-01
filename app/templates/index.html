@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Cargar Informacion desde </title>
+  </head>
+  <body>
+    <h1>Selecciona tabla y luego sube el archivo con la informacion:</h1>
+    <h3>Se puede cargar desde 1 a 1000 filas de información</h3>
+    <form method="POST" action="" enctype="multipart/form-data">
+      <p>
+        <select name="tablas" id="tablas">
+          <option value="jobs">Jobs</option>
+          <option value="department">Department</option>
+          <option value="hired_employees">Hired Employees</option>
+        </select>
+      </p>
+      <p><input type="file" name="file"></p>
+      <p><input type="submit" value="Cargar"></p>
+      
+      
+    </form>
+  </body>
+</html>
