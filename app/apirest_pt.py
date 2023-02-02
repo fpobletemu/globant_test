@@ -1,3 +1,10 @@
+### Fernando Poblete Muñoz 2023
+### Prueba Tecnica: API REST , Python Flask
+### Falta: Autenticación con token para seguridad, limitar la inserción de 1 a 1000 rows a la vez
+### Falta: Crear Dockerfile
+### Falta: Crear backups en Avro
+### Falta: Readme y documentacion
+
 from flask import Flask,jsonify,request, render_template, redirect, url_for, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
@@ -97,6 +104,13 @@ jobs_schema = JobsSchema(many = True)
 departments_schema = DepartmentSchema(many = True)
 HEs_schema = HESchema(many = True)
 
+##### Routes ######
+
+@app.route("/")
+def index():
+    return "<h1>Bienvenido a mi API</h1>"
+
+
 ##Get Jobs
 @app.route('/jobs',methods=['GET'])
 def get_jobs():
@@ -119,35 +133,39 @@ def get_hired_employees():
     return jsonify(result)
 
 @app.route('/upload_file')
-def index():
-     # Set The upload HTML template '\templates\index.html'
-    return render_template('index.html')
+def upload_file():
+    return render_template('upload_file.html')
 
 
-def insert_row():
-    return 0
+# def insert_row():
+#     return 0
 
 
 def parseCSV(filepath,table_flag):
 
     if table_flag == 'jobs':        
-        col_names = ['jobs_id','jobs_name']
+        col_rules = {'jobs_id':'int','jobs_name':'string'}
     elif table_flag == 'deparments':        
-        col_names = ['department_id','department_name']
+        col_rules = {'department_id':'int','department_name':'string'}
     elif table_flag == 'hired_employees':        
-        col_names = ['he_id','he_name','he_datetime','he_department_id','he_job_id']
+        col_rules = {'he_id':'int','he_name':'string','he_datetime':'string','he_department_id':'int','he_job_id':'int'}
+    col_names =  [col for col in col_rules.keys()]
 
-    try:
-        df = pd.read_csv(filepath,names=col_names, header=None)
-        
-        # for linea in df.iterrows():
-            
 
-        if df.shape[0] > 1000: #Cantidad de registros
-            print('AAAAAA')
-            return 0
-    except:
-        return print('tu wea no se pudo cargar, probablemente tenga un esquema distinto')
+    df = pd.read_csv(filepath,names=col_names, header=None, dtype='string') 
+    
+
+    if df.shape[0] < 1 or df.shape[0] > 1000:
+        return 'Cantidad de lineas fuera de los rangos [1 a 1000]'
+    else:
+        #### Trabajando en validacion de reglas...
+        ### probablemente cambie esto y valide al intentar insertar en la BBDD
+        for col in df.columns:
+            df[col] = df[col].astype(col_rules[col])
+
+        ### Luego del parseo del archivo se intentará cargar la info
+        # cargarData()
+
 
 
 
@@ -159,17 +177,14 @@ def uploadFiles():
 
       if uploaded_file.filename != '':
            file_path = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_file.filename)
-          # set the file path
+           uploaded_file.save(file_path)
 
            parseCSV(file_path,table_flag = loadTo)
-           print(file_path)
-        #    uploaded_file.save(file_path)
-          # save the file
 
       
       
-      
-      return redirect(url_for('index'))
+    #   return "Archivo Cargado"
+      return redirect(url_for('upload_file'))
 
 
 if __name__ =="__main__":
